@@ -42,6 +42,7 @@
 								&containerTpl=`@INLINE <ul class="breadcrumbs" itemprop="breadcrumb">[[+crumbs]]</ul>`
 							]]
 							<h1>[[*pagetitle]]</h1>
+							<a href="[[~[[*id]]? &print=`y`]]" class="to-print"><span>На печать</span><i class="iconsvg-printer"></i></a>
 						</div>
 						
 						[[*content]]

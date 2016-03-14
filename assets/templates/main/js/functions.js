@@ -336,7 +336,7 @@ function hoverClassInit(){
 		var $currentElements = self.$navMenuItem.filter('.'+self.modifiers.current+'');
 		$.each($currentElements, function () {
 			$(this).firstChildElement(self.options.navDropMenu).slideDown(0, function () {
-				$(window).trigger('openCurrentNavItem');
+				$(window).trigger('openedCurrentNavItem');
 			});
 		});
 	};
@@ -366,7 +366,7 @@ function hoverClassInit(){
 
 			if (current.siblings(collapsibleElement).is(':visible')){
 				currentAccordionItem.removeClass(modifiers.active).find(collapsibleElement).slideUp(animateSpeed, function () {
-					//$(window).trigger('openCurrentNavItem');
+					//$(window).trigger('openedCurrentNavItem');
 				});
 				currentAccordionItem.removeClass(modifiers.current);
 				currentAccordionItem.find(anyAccordionItem).removeClass(modifiers.active).removeClass(modifiers.current);
@@ -379,7 +379,7 @@ function hoverClassInit(){
 
 			currentAccordionItem.addClass(modifiers.active);
 			current.siblings(collapsibleElement).slideDown(animateSpeed, function () {
-				//$(window).trigger('openCurrentNavItem');
+				//$(window).trigger('openedCurrentNavItem');
 			});
 		})
 	};
@@ -457,10 +457,6 @@ function hoverClassInit(){
 				self.closeNav($html,$buttonMenu);
 			}
 
-			// Удаляем с пунктов меню всех уровней активный и текущий классы
-			//self.$navMenuItem.removeClass(_activeClass);
-			//self.$navMenuItem.removeClass(_current);
-
 			// Переключаем класс открывающий меню. Открытие через CSS3 translate
 			$html.toggleClass(modifiers.opened);
 
@@ -478,17 +474,26 @@ function hoverClassInit(){
 			self.closeNav($html,$buttonMenu);
 		});
 
+		//Скрываем меню по клику на кнопку закрытия
+		self.$btnClose.on('click', function () {
+			self.closeNav($html,$buttonMenu);
+		});
+
+		//Скрываем меню по клику на кнопку закрытия
+		$(window).swipe({
+			swipeLeft: function () {
+				if ($buttonMenu.hasClass(_activeClass)) {
+					self.closeNav($html, $buttonMenu);
+				}
+			}
+		});
+
 		// скрываем меню при ресайзе на десктопе
 		if(!self.md.mobile()){
 			$(window).on('debouncedresize', function () {
 				self.closeNav($html,$buttonMenu);
 			});
 		}
-
-		//Скрываем меню по клику на кнопку закрытия
-		self.$btnClose.on('click', function () {
-			self.closeNav($html,$buttonMenu);
-		});
 
 		// Удаляем класс позиционирования хедера при скролле
 		$(window).scroll(function () {
@@ -564,142 +569,152 @@ var collapseNavItem = function() {
 /*nav position*/
 function navPosition(){
 
-	if($('.inner-page').length){
-		var topFixed = false;
-		var bottomFixed = false;
-		var footerTouch = false;
-		var scrollPositionPrevious = $(window).scrollTop();
+	if($('.inner-page').length && $('.btn-menu').is(':hidden')){
 
-		if($('.nav-inner-page').has('.current').length){
-			$(window).on('openCurrentNavItem scroll', function () {
+		var bottomFixed = false;
+		var $window = $(window);
+		var scrollPositionPrevious = $window.scrollTop();
+
+		if ($('.nav-inner-page').has('.current').length) {
+			$window.on('openedCurrentNavItem scroll', function () {
 				navRelativePosition();
-			})
+			});
+			var loadTimer;
+			$window.on('load', function () {
+					clearTimeout(loadTimer);
+					loadTimer = setTimeout(function () {
+						navRelativePosition();
+					}, 700);
+				});
 		} else {
-			$(window).on('load scroll', function () {
+			$window.on('load scroll', function () {
 				navRelativePosition();
 			})
 		}
 	}
 
+	var resizeTimer;
+	$(window).on('resizeByWidth', function () {
+		if($('.inner-page').length && $('.btn-menu').is(':hidden')){
+			clearTimeout(resizeTimer);
+			resizeTimer = setTimeout(function () {
+				navRelativePosition();
+			}, 500);
+		}
+	});
+
 	function navRelativePosition() {
-		if($('.btn-menu').is(':visible')){return;}
 
 		var windowHeight = $(window).outerHeight();
 		var scrollPositionCurrent = $(window).scrollTop();
+		//console.log('scrollPositionCurrent: ', scrollPositionCurrent);
 		var windowBottomPosition = scrollPositionCurrent + windowHeight;
+		//console.log('windowBottomPosition: ', windowBottomPosition);
 
 		var $floatingElement = $('.nav-inner-page__holder');
 		var floatingElementHeight = $floatingElement.outerHeight(true);
 		var floatingElementPosition = $floatingElement.offset().top;
-		var floatingElementBottomPosition = floatingElementHeight + floatingElementPosition;
+		var floatingElementBottomPosition = floatingElementPosition + floatingElementHeight;
+		//console.log('floatingElementBottomPosition: ', floatingElementBottomPosition);
 
 		var footerPosition = $('.footer').offset().top;
+		//console.log('footerPosition: ', footerPosition);
 
 		var topSpace = scrollPositionCurrent > 140 ? 60 : 200;
+		//console.log('topSpace: ', topSpace);
 
-		if(floatingElementHeight < windowHeight && !footerTouch ){
+		// Верхняя координата плавающего элемента + верхний отступ
+		var floatingElementRelativePosition = floatingElementPosition - topSpace;
+		//console.log('floatingElementRelativePosition: ', floatingElementRelativePosition);
+
+		var scrollDown = scrollPositionCurrent > scrollPositionPrevious;
+		//console.log('scrollDown: ', scrollDown);
+		var scrollTop = scrollPositionCurrent < scrollPositionPrevious;
+		//console.log('scrollTop: ', scrollTop);
+		//var footerTouch = floatingElementBottomPosition >= footerPosition;
+		var footerTouch = floatingElementBottomPosition >= footerPosition;
+		//console.log('footerTouch: ', footerTouch);
+		var floatingElementAbroadBottom = floatingElementBottomPosition > windowBottomPosition;
+		//console.log('floatingElementAbroadBottom: ', floatingElementAbroadBottom);
+		var floatingElementHeightAbsolute = floatingElementHeight + topSpace;
+		//console.log('floatingElementHeightAbsolute: ', floatingElementHeightAbsolute);
+
+		// Высота контента от верхней граниицы окта браузера до нихней границы контента "class.content"
+		var $content = $('.content');
+		var contentHeight = $content.offset().top + $content.outerHeight(true);
+		//console.log('contentHeight: ', contentHeight);
+
+		var floatingElementIsSmall = contentHeight > floatingElementHeightAbsolute;
+		//console.log('floatingElementIsSmall: ', floatingElementIsSmall);
+		var delta = 0;
+
+		if (
+			scrollTop && floatingElementIsSmall && scrollPositionCurrent <= floatingElementRelativePosition && floatingElementIsSmall
+			||
+			scrollTop && floatingElementIsSmall && floatingElementRelativePosition < 0
+			||
+			!footerTouch && floatingElementIsSmall && floatingElementHeightAbsolute < windowHeight
+		){
+			//console.log('I');
 			$floatingElement.css({
 				'position': 'fixed',
-				'top': topSpace,
-				'bottom': 'auto'
+				'top': topSpace
 			});
 			bottomFixed = false;
-			topFixed = true;
+		} else if (
+			scrollDown
+			&&
+			!floatingElementAbroadBottom
+			&&
+			!footerTouch
+			&&
+			scrollPositionCurrent > floatingElementRelativePosition
+			&&
+			windowBottomPosition < footerPosition
+		){
+			//console.log('II');
+			$floatingElement.css({
+				'position': 'fixed',
+				'top': windowHeight - floatingElementHeight
+			});
+			bottomFixed = true;
+		} else if (
+			scrollDown && floatingElementAbroadBottom
+			||
+			scrollTop && bottomFixed
+		){
+			//console.log('III');
+			$floatingElement.css({
+				'position': 'relative',
+				'top': floatingElementRelativePosition
+			});
+		} else if (
+			footerTouch ||
+			windowBottomPosition > footerPosition && floatingElementHeightAbsolute >= footerPosition - scrollPositionCurrent
+		){
+			//console.log('IV');
+			delta = floatingElementBottomPosition - footerPosition;
+			//console.log('delta: ', delta);
+			$floatingElement.css({
+				'position': 'relative',
+				'top': floatingElementRelativePosition - delta
+			});
+			bottomFixed = true;
+
+		} else if (
+			!floatingElementIsSmall && !scrollDown && !scrollTop
+		) {
+			//console.log('V');
+			$floatingElement.css({
+				'position': 'relative',
+				'top': 0
+			});
 		}
 
-		if (floatingElementHeight >= windowHeight) {
-			if (scrollPositionCurrent > scrollPositionPrevious) { // Скроллим вниз
-				if (!bottomFixed && floatingElementBottomPosition < windowBottomPosition) {
-					$floatingElement.css({
-						'position': 'fixed', 'top': 'auto', 'bottom': 0
-					});
-					bottomFixed = true;
-					footerTouch = false;
-				} else if (!footerTouch && topFixed && floatingElementBottomPosition > windowBottomPosition) {
-					$floatingElement.css({
-						'position': 'relative', 'bottom': 'auto', 'top': floatingElementPosition - topSpace
-					});
-					topFixed = false;
-				} else if (!footerTouch && footerPosition <= floatingElementBottomPosition) {
-					var delta = floatingElementBottomPosition - footerPosition;
-					$floatingElement.css({
-						'position': 'relative', 'bottom': 'auto', 'top': floatingElementPosition - topSpace - delta
-					});
-					footerTouch = true;
-				}
-			} else if (scrollPositionCurrent < scrollPositionPrevious) { // Скроллим вверх
-				if (!footerTouch && bottomFixed) {
-					$floatingElement.css({
-						'position': 'relative', 'bottom': 'auto', 'top': scrollPositionCurrent + windowHeight - floatingElementHeight - topSpace
-					});
-					bottomFixed = false;
-				} else if (scrollPositionCurrent < floatingElementPosition - topSpace) {
-					$floatingElement.css({
-						'position': 'fixed', 'top': topSpace, 'bottom': 'auto'
-					});
-					bottomFixed = false;
-					topFixed = true;
-					footerTouch = false;
-				} else if (scrollPositionCurrent < 140) {
-					$floatingElement.css({
-						'position': 'relative', 'top': 0, 'bottom': 'auto'
-					});
-					bottomFixed = false;
-					topFixed = true;
-					footerTouch = false;
-				}
-			} else { // До начала скролла
-				if (windowBottomPosition < floatingElementHeight) {
-					$floatingElement.css({
-						'position': 'relative', 'bottom': 'auto', 'top': scrollPositionCurrent
-					});
-					topFixed = true;
-				} else {
-					$floatingElement.css({
-						'position': 'fixed', 'top': 'auto', 'bottom': 0
-					});
-					//topFixed = false;
-					//bottomFixed = true;
-				}
-			}
-		} else {
-			if (scrollPositionCurrent > scrollPositionPrevious) { // Скроллим вниз
-				if (!footerTouch && footerPosition <= floatingElementBottomPosition) {
-					delta = floatingElementBottomPosition - footerPosition;
-					$floatingElement.css({
-						'position': 'relative',
-						'bottom': 'auto',
-						'top': floatingElementPosition - topSpace - delta
-					});
-					footerTouch = true;
-				}
-			} else if (scrollPositionCurrent < scrollPositionPrevious) { // Скроллим вверх
-				if (scrollPositionCurrent < floatingElementPosition - topSpace) {
-					$floatingElement.css({
-						'position': 'fixed', 'top': topSpace, 'bottom': 'auto'
-					});
-					bottomFixed = false;
-					topFixed = true;
-					footerTouch = false;
-				} else if (scrollPositionCurrent < 140) {
-					$floatingElement.css({
-						'position': 'relative', 'top': 0, 'bottom': 'auto'
-					});
-					bottomFixed = false;
-					topFixed = true;
-					footerTouch = false;
-				}
-			} else { // До начала скролла
-				$floatingElement.css({
-					'position': 'fixed', 'top': topSpace, 'bottom': 'auto'
-				});
-				topFixed = true;
-				bottomFixed = false;
-			}
-		}
 		scrollPositionPrevious = scrollPositionCurrent;
 	}
 }
+
 /*nav position end*/
 
 /*footer drop*/
@@ -803,14 +818,14 @@ function navPosition(){
 }(jQuery));
 
 function footerDropInit() {
-	if($('.map-site-switcher').length){
+	/*if($('.map-site-switcher').length){
 		new Disperse({
 			switcher: '.map-site-switcher',
 			wrapperContainer: '.footer',
 			disperseDrop: '.site-map',
 			btnClose: '.site-map-close'
 		});
-	}
+	}*/
 
 	if($('.contact-panel__opener').length){
 		new Disperse({
@@ -818,7 +833,7 @@ function footerDropInit() {
 			wrapperContainer: '.footer',
 			disperseDrop: '.contacts-panel__holder',
 			scrollTo: '.contacts-panel',
-			clearOnResize: true
+				clearOnResize: true
 		});
 	}
 }
@@ -1432,8 +1447,8 @@ function slickSlidersInit(){
 /*slick sliders init end*/
 
 /*map init*/
-var smallPinMap = 'img/map-pin-sm.png',
-	largePinMap = 'img/map-pin.png';
+var smallPinMap = '/assets/templates/main/img/map-pin-sm.png',
+	largePinMap = '/assets/templates/main/img/map-pin.png';
 
 var localObjects = [
 	[
@@ -1610,39 +1625,91 @@ function mapMainInit(){
 		//markers = [];
 	}
 
-	/*showed footer map*/
-	var $footerMap = $('.footer-local-map'),
-		animationSpeed = 300;
+	/*switch footer panels*/
+	/*функцию вызываем в пространстве имен функции mapMainInit(),
+	* чтобы сохранить фозможность перезагрузки гугл-карты*/
+	switchFooterPanels();
 
-	$('.road-view').on('click', function () {
-		var $currentBtn = $(this);
-		var $footerMapWrap = $footerMap.closest('.footer-map-row');
+	function switchFooterPanels() {
+		var animationSpeed = 300;
 		var _activeClass = 'active';
-		if($footerMap.is(':animated')){ return; }
+		var panelShow = false;
+		var $footerPanelSwitcher = $('.road-view, .map-site-switcher');
+		$footerPanelSwitcher.on('click', function () {
+			var $currentBtn = $(this);
+			var $panel = $('.' + $currentBtn.data('panel') + '');
+			//if($panel.is(':animated')){ return; }
+			$footerPanelSwitcher.removeClass(_activeClass);
+			if ($panel.is(':visible')) {
+				$panel.stop().slideUp(animationSpeed).removeClass(_activeClass);
+				footerAtBottom(-$panel.outerHeight(true), animationSpeed);
+				panelShow = false;
+				return;
+			}
+			function mapReload() {
+				google.maps.event.trigger(map2, 'resize');
+				moveToLocation(0, map2);
+			}
+			if (panelShow) {
+				$footerPanelSwitcher.removeClass(_activeClass);
+				$('.footer-panels').children(':visible').slideUp(0, function () {
+					footerAtBottom(-$(this).outerHeight(true), animationSpeed);
+				}).removeClass(_activeClass);
+				$panel.slideDown(0, function () {
+					mapReload();
+					footerAtBottom($panel.outerHeight(true), animationSpeed);
+				}).addClass(_activeClass);
+				$currentBtn.addClass(_activeClass);
+			} else {
+				$currentBtn.addClass(_activeClass);
+				$panel.stop().slideDown(animationSpeed, function () {
+					mapReload();
+					footerAtBottom($panel.outerHeight(true), animationSpeed);
+				}).addClass(_activeClass);
+				panelShow = true;
+			}
+			$('html, body').animate({scrollTop: $panel.offset().top}, animationSpeed);
+		});
+		var $footerPanelCloser = $('.site-map-close, .footer-map-close');
+		$footerPanelCloser.on('click', function () {
+			$footerPanelSwitcher.removeClass(_activeClass);
+			var $closingPanel = $(this).closest('.' + _activeClass + '');
+			$closingPanel.stop().slideUp(animationSpeed).removeClass(_activeClass);
+			footerAtBottom(-$closingPanel.outerHeight(true), animationSpeed);
+			panelShow = false;
+		});
+	}
 
-		if($footerMap.is(':visible')){
-			$footerMap.stop().slideUp(animationSpeed, function () {
-				footerAtBottom (-$footerMap.outerHeight(true), animationSpeed);
-			});
-			$footerMapWrap.removeClass(_activeClass);
+	$(window).on('scroll load resizeByWidth', function () {
+		positionBtnClose();
+	});
+
+	function positionBtnClose(){
+		var $btn = $('.site-map-close');
+		var $wrap = $('.site-map');
+		var windowHeight = $(window).outerHeight();
+		var wrapHeight = $wrap.outerHeight();
+
+		if($wrap.is(':hidden') || windowHeight > wrapHeight){
 			return;
 		}
-		$footerMap.stop().slideDown(animationSpeed, function () {
-			google.maps.event.trigger(map2,'resize');
-			moveToLocation(0,map2);
-			footerAtBottom ($footerMap.outerHeight(true), animationSpeed);
-			$footerMapWrap.addClass(_activeClass);
-		});
 
-		$('html, body').animate({ scrollTop: $currentBtn.offset().top }, animationSpeed);
-	});
 
-	$('.footer-map-close').on('click', function () {
-		$footerMap.stop().slideUp(animationSpeed, function () {
-			footerAtBottom (-$footerMap.outerHeight(true), animationSpeed);
+		$btn.css({
+			'top': 14,
+			'bottom': 'auto'
 		});
-		$('.footer-map-row').removeClass('active');
-	});
+		var windowBottomPosition = $(window).scrollTop() + windowHeight;
+		var wrapBottomPosition = $wrap.offset().top + wrapHeight - 20;
+
+		if(windowBottomPosition > wrapBottomPosition){
+			$btn.css({
+				'top': 'auto',
+				'bottom': 16
+			});
+		}
+	}
+	/*switch footer panels end*/
 }
 /*map init end*/
 
@@ -2067,16 +2134,14 @@ function footerAtBottom (height, speed) {
 
 	HistorySlider.prototype.scrollToCurrentSlide = function (index) {
 		var self = this;
-		var slideWidth = self.$slide.eq(index).outerWidth(),
-			slideNextWidth = self.$slide.eq(index).next().outerWidth(),
+		var slideNextWidth = self.$slide.eq(index).next().outerWidth(),
 			slidePrevWidth = self.$slide.eq(index).prev().outerWidth(),
-			slideLeftOffset = self.$slide.eq(index).offset().left,
 			containerWidth = self.$sliderContainer.outerWidth(),
 			containerLeftOffset = self.$sliderContainer.offset().left,
-			slideLeftPosition = slideLeftOffset - containerLeftOffset,
+			slideLeftPosition = self.$slide.eq(index).offset().left - containerLeftOffset,
 
 			minPaddingLeft = self._padding,
-			minPaddingRight = slideWidth + self._padding,
+			minPaddingRight = self.$slide.eq(index).outerWidth() + self._padding,
 
 			rightEdge = containerWidth - minPaddingRight,
 			innerWidth = self.$sliderInner.outerWidth(),

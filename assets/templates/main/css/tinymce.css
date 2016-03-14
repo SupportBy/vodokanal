@@ -1,0 +1,238 @@
+body{
+	font: 14px/24px Tahoma, Geneva, sans-serif;
+	color: #333;
+}
+h1, h2, h3, h4, h5, h6{
+	font-weight: 700;
+	margin: 0;
+	color: #333;
+}
+h1{
+	font-size: 24px;
+	line-height: 29px;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	padding: 0 0 20px;
+}
+h2{
+	font-size: 24px;
+	line-height: 29px;
+	padding: 0 0 23px;
+}
+h3{
+	font-size: 18px;
+	line-height: 22px;
+	padding: 0 0 15px;
+}
+h4{
+	font-size: 14px;
+	line-height: 24px;
+	padding: 0 0 10px;
+}
+h5{
+	font-size: 14px;
+	line-height: 16px;
+	font-weight: normal;
+	padding: 0 0 5px;
+}
+h6{
+	font-size: 12px;
+	line-height: 14px;
+	font-weight: 100;
+	padding: 0 0 5px;
+}
+p{
+	margin: 0;
+	padding: 0 0 24px;
+}
+p::selection {
+	color: #fff;
+	background: #83cff0;
+}
+hr{
+	line-height: 1px;
+	height: 0;
+	border: none;
+	background: none;
+	border-bottom: 1px solid #000;
+	margin-bottom: 25px;
+}
+a{
+	color: #008acf;
+	outline: none;
+	text-decoration: underline;
+	cursor: default;
+}
+a:link{ cursor: pointer; }
+a:hover{ text-decoration: none; }
+img{
+	border: none;
+	vertical-align: top;
+	height: auto;
+}
+table td,
+table th{
+	padding: 8px;
+	border: 1px solid #ccc;
+	font-size: 14px;
+	line-height: 24px;
+	font-weight: normal;
+}
+
+
+/*unordered list (UL)*/
+ul{
+	margin:0;
+	padding: 0 0 30px;
+	list-style:none;
+}
+ul li{
+	padding: 20px 0 0 28px;
+	position: relative;
+}
+ul li:first-child{ padding-top: 0; }
+ul li:before{
+	content: '';
+	position: absolute;
+	left: 0;
+	top: 27px;
+	height: 9px;
+	width: 9px;
+	background: #83cff0;
+	border-radius: 9px;
+}
+ul li:first-child:before{ top: 8px; }
+ul ul{ padding: 0; }
+ul ul li:before,
+ul ul li:first-child:before{
+	height: 3px;
+	width: 9px;
+	border-radius: 0;
+	top: 31px;
+}
+ul ul li:first-child{ padding-top: 20px; }
+/*unordered list (UL) end*/
+
+/*ordered list (OL)*/
+ol{
+	counter-reset: section;
+	margin: 0;
+	list-style: none;
+	padding: 0 0 20px;
+}
+ol:after{
+	content: "";
+	display: block;
+	clear: both;
+}
+ol > li{
+	counter-increment: section;
+	height: 1%;
+	overflow: hidden;
+	padding: 0 0 20px 28px;
+}
+ol > li:before{
+	display: inline-block;
+	text-align: left;
+	color: #83cff0;
+	font-weight: bold;
+	width: 28px;
+	content: counter(section);
+	padding: 0 5px 0 0;
+	margin-left: -28px;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+}
+/*ordered list (OL) end*/
+
+/*table styling*/
+.table-auto{
+	overflow: auto;
+	max-width: 100%;
+	-webkit-overflow-scrolling: touch;
+	margin: 0 0 20px;
+}
+.tbl{
+	margin-bottom: 20px;
+	border-collapse: separate;
+}
+.table-auto .tbl{ margin: 0; }
+table caption{
+	caption-side: bottom;
+	color: #9c9d9f;
+	font-size: 12px;
+	line-height: 16px;
+	letter-spacing: 0.1em;
+	padding: 16px 0;
+}
+.tbl td,
+.tbl th{
+	font-size: 14px;
+	line-height: 24px;
+	color: #666;
+	background-color: #fff;
+	border: solid #ccc;
+	border-width: 0 1px 1px 0;
+	padding: 12px 17px;
+}
+.tbl tbody tr:nth-child(even) td{ background: #f7f7f7; }
+.tbl tr:first-child td{ border-top-width: 1px; }
+.tbl tbody td:first-child{ border-left-width: 1px; }
+.tbl th,
+.tbl thead td{
+	color: #333;
+	font-weight: normal;
+	background: none;
+	padding: 20px 12px;
+	border: none;
+}
+.tbl tfoot td{
+	background: none;
+	border: none;
+	color: #333;
+}
+/*table styling end*/
+
+/*blockquote*/
+blockquote{
+	display: block;
+	margin: 0;
+	background-color: #f5f5f5;
+	border-left: 4px solid #83cff0;
+	padding: 18px 32px 28px 42px;
+}
+blockquote q{
+	display: block;
+	margin: 0;
+	padding: 0 0 10px;
+	font: italic 18px/24px 'Times New Roman', Times, serif;
+	letter-spacing:0.05em;
+	color: #808080;
+}
+blockquote q:before,
+blockquote q:after{
+	content: '';
+	display: block;
+	font-size: 24px;
+	line-height: 28px;
+}
+blockquote q:before{
+	content: '«';
+	padding-left: 17%;
+	padding-bottom: 10px;
+}
+blockquote q:after{
+	content: '»';
+	text-align: right;
+	padding-right: 18.5%;
+	padding-top: 8px;
+}
+blockquote cite{
+	text-align: right;
+	display: block;
+	margin-left: auto;
+	font: italic 20px/24px 'Times New Roman', Times, serif;
+	color: #333;
+}
+/*blockquote end*/
